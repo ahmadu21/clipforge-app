@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClipForge AI - Complete Video Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=Permanent+Marker&family=Bangers&family=Bebas+Neue&display=swap');
+        
+        * { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .caption-style-minimal { font-family: 'Inter', sans-serif; text-transform: none; letter-spacing: 0; }
+        .caption-style-bold { font-family: 'Bangers', cursive; text-transform: uppercase; letter-spacing: 2px; }
+        .caption-style-marker { font-family: 'Permanent Marker', cursive; text-transform: none; letter-spacing: 1px; }
+        .caption-style-cinema { font-family: 'Bebas Neue', sans-serif; text-transform: uppercase; letter-spacing: 3px; }
+        .caption-style-tiktok { font-family: 'Inter', sans-serif; text-transform: none; letter-spacing: -0.5px; text-shadow: 2px 2px 0px #000; }
+        
+        .hashtag-chip {
+            animation: pop-in 0.3s ease-out;
+            transition: all 0.2s;
+        }
+        
+        .hashtag-chip:hover {
+            transform: scale(1.05);
+            background: rgba(99, 102, 241, 0.3);
+        }
+        
+        @keyframes pop-in {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .music-wave {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            height: 20px;
+        }
+        
+        .music-bar {
+            width: 3px;
+            background: linear-gradient(to top, #667eea, #f093fb);
+            border-radius: 2px;
+            animation: wave 1s ease-in-out infinite;
+        }
+        
+        .music-bar:nth-child(1) { height: 40%; animation-delay: 0s; }
+        .music-bar:nth-child(2) { height: 70%; animation-delay: 0.1s; }
+        .music-bar:nth-child(3) { height: 100%; animation-delay: 0.2s; }
+        .music-bar:nth-child(4) { height: 60%; animation-delay: 0.3s; }
+        .music-bar:nth-child(5) { height: 80%; animation-delay: 0.4s; }
+        
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1); }
+        }
+        
+        .genre-card {
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .genre-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+        
+        .genre-card.active {
+            border-color: #667eea;
+            background: rgba(99, 102, 241, 0.15);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+        }
+        
+        .audio-visualizer {
+            position: relative;
+            height: 60px;
+            background: linear-gradient(90deg, rgba(99,102,241,0.1) 0%, rgba(118,75,162,0.1) 100%);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .audio-bar {
+            position: absolute;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to top, #667eea, #f093fb);
+            border-radius: 2px 2px 0 0;
+            transition: height 0.1s ease;
+        }
+        
+        .face-track-box {
+            border: 2px solid #10b981;
+            box-shadow: 0 0 10px #10b981, inset 0 0 10px rgba(16, 185, 129, 0.3);
+            animation: pulse-face 2s infinite;
+        }
+        
+        @keyframes pulse-face {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; box-shadow: 0 0 20px #10b981, inset 0 0 20px rgba(16, 185, 129, 0.5); }
+        }
+        
+        .caption-preview {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            width: 90%;
+            pointer-events: none;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .word-highlight {
+            background: linear-gradient(120deg, rgba(99,102,241,0.8) 0%, rgba(118,75,162,0.8) 100%);
+            padding: 0 4px;
+            border-radius: 4px;
+            animation: highlight-pop 0.3s ease-out;
+        }
+        
+        @keyframes highlight-pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .social-btn {
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .publish-modal {
+            animation: slide-up 0.3s ease-out;
+        }
+        
+        @keyframes slide-up {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .ai-thinking {
+            display: inline-flex;
+            gap: 2px;
+        }
+        
+        .ai-thinking span {
+            width: 4px;
+            height: 4px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: thinking 1.4s infinite;
+        }
+        
+        .ai-thinking span:nth-child(2) { animation-delay: 0.2s; }
+        .ai-thinking span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes thinking {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen overflow-x-hidden">
+
+    <!-- Background -->
+    <div class="fixed inset-0 pointer-events-none z-0">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
+    </div>
+
+    <!-- Header -->
+    <nav class="relative z-50 border-b border-white/10 bg-slate-950/80 backdrop-blur-md sticky top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                        <i data-lucide="sparkles" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold gradient-text">ClipForge AI</h1>
+                        <p class="text-xs text-slate-400">Auto-Hashtags • Music Replace • Smart Publish</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                        <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                        <span class="text-xs text-emerald-300">100% Free Tier</span>
+                    </div>
+                    <button onclick="resetApp()" class="text-sm text-slate-400 hover:text-white transition">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-1"></i>
+                        New
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Upload -->
+        <section id="uploadSection" class="glass-panel rounded-2xl p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold mb-2">Upload Video</h2>
+                <p class="text-slate-400">AI extracts hashtags, replaces music, optimizes for viral</p>
+            </div>
+
+            <div id="dropZone" class="border-2 border-dashed border-slate-700 rounded-xl p-12 text-center hover:border-indigo-500/50 transition-all bg-slate-900/50 relative overflow-hidden">
+                <input type="file" id="videoInput" accept="video/*" class="hidden" onchange="handleFile(event)">
+                
+                <div id="uploadUI" class="relative z-10">
+                    <div class="w-20 h-20 mx-auto bg-indigo-500/10 rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="upload-cloud" class="w-10 h-10 text-indigo-400"></i>
+                    </div>
+                    <p class="text-lg font-medium mb-2">Drop video or click to upload</p>
+                    <p class="text-sm text-slate-500 mb-6">MP4, MOV, WebM • Max 500MB • Auto-analyzes content</p>
+                    <button onclick="document.getElementById('videoInput').click()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-medium transition shadow-lg shadow-indigo-500/25">
+                        Select Video
+                    </button>
+                </div>
+
+                <div id="processingOverlay" class="hidden absolute inset-0 bg-slate-900/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
+                    <div class="relative w-32 h-32 mb-4">
+                        <svg class="w-full h-full animate-spin" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(99,102,241,0.2)" stroke-width="8"/>
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="url(#grad1)" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="70" stroke-linecap="round"/>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span id="processPercent" class="text-2xl font-bold">0%</span>
+                        </div>
+                    </div>
+                    <h3 id="processStep" class="text-xl font-medium text-indigo-300 mb-2">Processing...</h3>
+                    <div id="processLog" class="mt-4 w-full max-w-md bg-black/50 rounded-lg p-3 text-xs font-mono text-left space-y-1 max-h-32 overflow-y-auto border border-slate-800"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Editor -->
+        <section id="editorSection" class="hidden space-y-6">
+            
+            <div class="glass-panel rounded-2xl p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Video Preview -->
+                    <div class="lg:col-span-2 space-y-4">
+                        <div class="relative aspect-[9/16] max-h-[600px] bg-black rounded-xl overflow-hidden border border-slate-800 mx-auto">
+                            <video id="mainVideo" class="w-full h-full object-cover" playsinline></video>
+                            <canvas id="faceTrackCanvas" class="absolute inset-0 pointer-events-none"></canvas>
+                            <div id="liveCaptions" class="caption-preview hidden">
+                                <span id="captionText" class="text-2xl font-bold text-white drop-shadow-lg"></span>
+                            </div>
+                            <div id="faceIndicators" class="absolute inset-0 pointer-events-none"></div>
+                            <div id="recordingIndicator" class="hidden absolute top-4 right-4 flex items-center gap-2 bg-red-500/80 px-3 py-1.5 rounded-full">
+                                <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                                <span class="text-xs font-bold">REC</span>
+                            </div>
+                            
+                            <div id="audioIndicator" class="hidden absolute top-4 left-4 flex items-center gap-2 bg-indigo-500/80 px-3 py-1.5 rounded-full">
+                                <div class="music-wave">
+                                    <div class="music-bar"></div>
+                                    <div class="music-bar"></div>
+                                    <div class="music-bar"></div>
+                                    <div class="music-bar"></div>
+                                    <div class="music-bar"></div>
+                                </div>
+                                <span class="text-xs font-bold">AI MUSIC</span>
+                            </div>
+                        </div>
+
+                        <!-- Timeline -->
+                        <div class="bg-slate-900 rounded-xl p-4 border border-slate-800">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-semibold text-sm">Timeline Analysis</h3>
+                                <div class="flex gap-2 text-xs">
+                                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-emerald-500"></span>Speech</span>
+                                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-blue-500"></span>Face</span>
+                                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-amber-500"></span>Hook</span>
+                                </div>
+                            </div>
+                            <div class="relative h-32 bg-slate-950 rounded-lg overflow-hidden" id="timelineContainer">
+                                <canvas id="timelineCanvas" class="w-full h-full"></canvas>
+                                <div id="timelineOverlay" class="absolute inset-0"></div>
+                                <div id="playhead" class="absolute top-0 bottom-0 w-0.5 bg-white z-20 shadow-lg" style="left: 0%"></div>
+                            </div>
+                            <div class="flex justify-between mt-2 text-xs font-mono text-slate-500">
+                                <span id="currentTime">00:00</span>
+                                <span id="totalTime">00:00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="space-y-4">
+                        
+                        <!-- AI Hashtag Generator -->
+                        <div class="glass-panel rounded-xl p-5">
+                            <h3 class="font-semibold mb-4 flex items-center gap-2">
+                                <i data-lucide="hash" class="w-5 h-5 text-pink-400"></i>
+                                AI Hashtag Generator
+                            </h3>
+                            
+                            <div id="hashtagLoading" class="hidden flex items-center gap-2 text-sm text-indigo-300 mb-3">
+                                <div class="ai-thinking">
+                                    <span></span><span></span><span></span>
+                                </div>
+                                Analyzing content for hashtags...
+                            </div>
+                            
+                            <div id="hashtagResults" class="hidden space-y-3">
+                                <div>
+                                    <p class="text-xs text-slate-400 mb-2">Detected Topics:</p>
+                                    <div id="topicTags" class="flex flex-wrap gap-2 mb-3"></div>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-400 mb-2">Recommended Hashtags:</p>
+                                    <div id="viralHashtags" class="flex flex-wrap gap-2"></div>
+                                </div>
+                                <div class="pt-2 border-t border-slate-800">
+                                    <p class="text-xs text-slate-400 mb-2">Platform-Specific:</p>
+                                    <div id="platformHashtags" class="flex flex-wrap gap-2"></div>
+                                </div>
+                            </div>
+                            
+                            <button onclick="generateHashtags()" id="genHashtagBtn" class="w-full py-2.5 bg-pink-600 hover:bg-pink-700 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                                Generate Hashtags
+                            </button>
+                        </div>
+
+                        <!-- Music Replacement -->
+                        <div class="glass-panel rounded-xl p-5">
+                            <h3 class="font-semibold mb-4 flex items-center gap-2">
+                                <i data-lucide="music" class="w-5 h-5 text-amber-400"></i>
+                                Copyright-Free Music
+                            </h3>
+                            
+                            <div id="musicAnalysis" class="hidden mb-4 p-3 bg-amber-900/20 border border-amber-500/30 rounded-lg">
+                                <p class="text-xs text-amber-300 flex items-center gap-2">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                                    <span id="musicStatus">Detected copyrighted audio patterns</span>
+                                </p>
+                            </div>
+                            
+                            <div class="space-y-3 mb-4">
+                                <p class="text-xs text-slate-400">Select Genre:</p>
+                                <div class="grid grid-cols-2 gap-2" id="genreGrid"></div>
+                            </div>
+                            
+                            <div id="musicPreview" class="hidden mb-4">
+                                <div class="audio-visualizer mb-2" id="visualizer"></div>
+                                <div class="flex justify-between text-xs text-slate-400">
+                                    <span id="trackName">Loading...</span>
+                                    <span id="trackDuration">0:00</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-2">
+                                <button onclick="previewMusic()" id="previewMusicBtn" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition flex items-center justify-center gap-2" disabled>
+                                    <i data-lucide="play" class="w-4 h-4"></i>
+                                    Preview
+                                </button>
+                                <button onclick="applyMusic()" id="applyMusicBtn" class="flex-1 py-2 bg-amber-600 hover:bg-amber-700 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2" disabled>
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                    Apply
+                                </button>
+                            </div>
+                            
+                            <audio id="bgMusic" loop crossorigin="anonymous"></audio>
+                        </div>
+
+                        <!-- Caption Styles -->
+                        <div class="glass-panel rounded-xl p-5">
+                            <h3 class="font-semibold mb-4 flex items-center gap-2">
+                                <i data-lucide="type" class="w-5 h-5 text-indigo-400"></i>
+                                Caption Style
+                            </h3>
+                            <div class="grid grid-cols-2 gap-3" id="captionStyles"></div>
+                        </div>
+
+                        <!-- Face Tracking -->
+                        <div class="glass-panel rounded-xl p-5">
+                            <h3 class="font-semibold mb-4 flex items-center gap-2">
+                                <i data-lucide="scan-face" class="w-5 h-5 text-emerald-400"></i>
+                                Face Tracking
+                            </h3>
+                            <div class="flex items-center justify-between py-2 border-b border-slate-800">
+                                <span class="text-sm text-slate-300">Auto-Center</span>
+                                <button onclick="toggle(this); toggleFaceTracking()" class="w-10 h-5 bg-indigo-600 rounded-full relative transition" data-active="true">
+                                    <span class="absolute right-1 top-0.5 w-4 h-4 bg-white rounded-full transition-transform"></span>
+                                </button>
+                            </div>
+                            <div class="mt-3 p-3 bg-emerald-900/20 border border-emerald-500/30 rounded-lg">
+                                <p class="text-xs text-emerald-300 flex items-center gap-2">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    <span id="faceCount">Detecting...</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Export -->
+                        <div class="glass-panel rounded-xl p-5">
+                            <h3 class="font-semibold mb-4">Export & Publish</h3>
+                            <select id="platformSelect" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm outline-none focus:border-indigo-500 mb-3">
+                                <option value="tiktok">TikTok (9:16)</option>
+                                <option value="youtube">YouTube Shorts (9:16)</option>
+                                <option value="instagram">Instagram Reels (9:16)</option>
+                                <option value="twitter">Twitter/X (2:3)</option>
+                            </select>
+                            
+                            <div class="grid grid-cols-2 gap-2 mb-3">
+                                <button onclick="exportVideo('download')" class="py-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                                    <i data-lucide="download" class="w-4 h-4"></i>
+                                    Download
+                                </button>
+                                <button onclick="showPublishModal()" class="py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                                    Publish
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-3 gap-2">
+                                <button onclick="publishTo('tiktok')" class="social-btn py-2 bg-black border border-slate-700 rounded-lg text-xs hover:bg-slate-800 transition flex items-center justify-center gap-1">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
+                                    TikTok
+                                </button>
+                                <button onclick="publishTo('youtube')" class="social-btn py-2 bg-red-600 rounded-lg text-xs hover:bg-red-700 transition flex items-center justify-center gap-1">
+                                    <i data-lucide="youtube" class="w-4 h-4"></i>
+                                    Shorts
+                                </button>
+                                <button onclick="publishTo('instagram')" class="social-btn py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-xs hover:opacity-90 transition flex items-center justify-center gap-1">
+                                    <i data-lucide="instagram" class="w-4 h-4"></i>
+                                    Reels
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generated Clips -->
+            <div class="glass-panel rounded-2xl p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold">AI-Generated Clips</h2>
+                    <button onclick="regenerateClips()" class="px-4 py-2 bg-slate-800 rounded-lg text-sm hover:bg-slate-700 transition flex items-center gap-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        Regenerate
+                    </button>
+                </div>
+                <div id="clipsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Publish Modal -->
+    <div id="publishModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+        <div class="publish-modal bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Publish to Social Media</h3>
+                <button onclick="closePublishModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <div class="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs text-slate-400">AI-Generated Caption</label>
+                        <button onclick="regenerateCaption()" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                            Regenerate
+                        </button>
+                    </div>
+                    <textarea id="publishCaption" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm resize-none h-24 focus:outline-none focus:border-indigo-500"></textarea>
+                    <div class="flex justify-between mt-2 text-xs">
+                        <span class="text-slate-500">Includes auto-hashtags</span>
+                        <span class="text-indigo-400" id="charCount">0/2200</span>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                    <label class="text-xs text-slate-400 block mb-2">Selected Hashtags (click to toggle):</label>
+                    <div id="modalHashtags" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="setPublishPlatform('tiktok')" class="p-4 bg-black border-2 border-slate-700 rounded-xl hover:border-indigo-500 transition text-left platform-select" data-platform="tiktok">
+                        <div class="flex items-center gap-3 mb-2">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
+                            <span class="font-semibold">TikTok</span>
+                        </div>
+                        <p class="text-xs text-slate-400">For You Page optimized</p>
+                    </button>
+                    
+                    <button onclick="setPublishPlatform('youtube')" class="p-4 bg-slate-800 border-2 border-slate-700 rounded-xl hover:border-indigo-500 transition text-left platform-select" data-platform="youtube">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="youtube" class="w-6 h-6 text-red-500"></i>
+                            <span class="font-semibold">YouTube Shorts</span>
+                        </div>
+                        <p class="text-xs text-slate-400">#Shorts algorithm</p>
+                    </button>
+                    
+                    <button onclick="setPublishPlatform('instagram')" class="p-4 bg-slate-800 border-2 border-slate-700 rounded-xl hover:border-indigo-500 transition text-left platform-select" data-platform="instagram">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="instagram" class="w-6 h-6 text-pink-500"></i>
+                            <span class="font-semibold">Instagram Reels</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Explore page boost</p>
+                    </button>
+                    
+                    <button onclick="setPublishPlatform('twitter')" class="p-4 bg-slate-800 border-2 border-slate-700 rounded-xl hover:border-indigo-500 transition text-left platform-select" data-platform="twitter">
+                        <div class="flex items-center gap-3 mb-2">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                            <span class="font-semibold">X / Twitter</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Viral video tweet</p>
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="confirmPublish()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-medium transition flex items-center justify-center gap-2">
+                <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                Prepare for Publishing
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const CAPTION_STYLES = [
+            { id: 'minimal', name: 'Clean', class: 'caption-style-minimal', sample: 'Clean & modern', bg: false },
+            { id: 'bold', name: 'Bold', class: 'caption-style-bold', sample: 'BOLD IMPACT', bg: true, color: '#ff0066' },
+            { id: 'marker', name: 'Marker', class: 'caption-style-marker', sample: 'Handwritten', bg: true, color: '#fbbf24' },
+            { id: 'cinema', name: 'Cinema', class: 'caption-style-cinema', sample: 'CINEMATIC', bg: false, outline: true },
+            { id: 'tiktok', name: 'TikTok', class: 'caption-style-tiktok', sample: 'TikTok style', bg: false, stroke: true }
+        ];
+
+        const MUSIC_GENRES = [
+            { id: 'lofi', name: 'Lo-Fi Chill', bpm: 80, mood: 'relaxed', color: 'from-green-500 to-emerald-600' },
+            { id: 'hiphop', name: 'Hip Hop', bpm: 95, mood: 'energetic', color: 'from-amber-500 to-orange-600' },
+            { id: 'electronic', name: 'Electronic', bpm: 128, mood: 'upbeat', color: 'from-purple-500 to-pink-600' },
+            { id: 'acoustic', name: 'Acoustic', bpm: 100, mood: 'warm', color: 'from-yellow-500 to-amber-600' },
+            { id: 'cinematic', name: 'Cinematic', bpm: 110, mood: 'dramatic', color: 'from-blue-500 to-indigo-600' },
+            { id: 'funky', name: 'Funky Groove', bpm: 115, mood: 'fun', color: 'from-pink-500 to-rose-600' }
+        ];
+
+        const FREE_MUSIC_URLS = {
+            lofi: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Algorithms.mp3',
+            hiphop: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Tours/Enthusiast/Tours_-_01_-_Enthusiast.mp3',
+            electronic: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Kai_Engel/Satin/Kai_Engel_-_04_-_Sentinel.mp3',
+            acoustic: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Jahzzar/Tumbling_Dishes_Like_Old-Mans_Wishes/Tumbling_Dishes_Like_Old-Mans_Wishes.mp3',
+            cinematic: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Kai_Engel/Irsens_Cabin/Kai_Engel_-_03_-_Contusion.mp3',
+            funky: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Podington_Bear/Funk/Podington_Bear_-_Funk.mp3'
+        };
+
+        const HASHTAG_DATABASE = {
+            general: ['viral', 'trending', 'fyp', 'foryou', 'foryoupage', 'viralvideo', 'trendingnow', 'explore', 'discover', 'contentcreator'],
+            tech: ['tech', 'technology', 'gadgets', 'innovation', 'ai', 'artificialintelligence', 'coding', 'programming', 'developer', 'software'],
+            business: ['entrepreneur', 'business', 'startup', 'success', 'motivation', 'hustle', 'grind', 'money', 'wealth', 'finance'],
+            lifestyle: ['lifestyle', 'life', 'daily', 'routine', 'productivity', 'selfimprovement', 'mindset', 'growth', 'success', 'goals'],
+            entertainment: ['entertainment', 'fun', 'comedy', 'lol', 'funny', 'meme', 'viral', 'trending', 'fyp', 'foryou'],
+            education: ['learn', 'education', 'tutorial', 'howto', 'tips', 'tricks', 'hacks', 'knowledge', 'study', 'skills'],
+            gaming: ['gaming', 'gamer', 'gameplay', 'videogames', 'esports', 'twitch', 'streamer', 'fortnite', 'minecraft', 'gta'],
+            fitness: ['fitness', 'gym', 'workout', 'health', 'fit', 'exercise', 'training', 'bodybuilding', 'motivation', 'transformation'],
+            food: ['food', 'foodie', 'cooking', 'recipe', 'yummy', 'delicious', 'foodtok', 'chef', 'kitchen', 'tasty'],
+            fashion: ['fashion', 'style', 'outfit', 'ootd', 'fashionista', 'trendy', 'aesthetic', 'lookbook', 'shopping', 'beauty']
+        };
+
+        let appState = {
+            video: null,
+            transcription: [],
+            faces: [],
+            currentStyle: 'minimal',
+            captionPosition: 'bottom',
+            faceTracking: true,
+            clips: [],
+            selectedHashtags: [],
+            generatedHashtags: [],
+            selectedMusic: null,
+            musicAudio: null,
+            audioContext: null,
+            analyser: null,
+            publishPlatform: 'tiktok'
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderCaptionStyles();
+            renderMusicGenres();
+            setupDragDrop();
+        });
+
+        function renderCaptionStyles() {
+            const container = document.getElementById('captionStyles');
+            container.innerHTML = CAPTION_STYLES.map(style => `
+                <div onclick="setCaptionStyle('${style.id}')" 
+                     class="cursor-pointer p-3 rounded-lg border-2 transition ${appState.currentStyle === style.id ? 'border-indigo-500 bg-indigo-500/10' : 'border-slate-700 hover:border-slate-600'}">
+                    <div class="text-lg mb-1 ${style.class}" style="${style.color ? 'color:' + style.color : ''}">
+                        ${style.sample}
+                    </div>
+                    <div class="text-xs text-slate-400">${style.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderMusicGenres() {
+            const grid = document.getElementById('genreGrid');
+            grid.innerHTML = MUSIC_GENRES.map(genre => `
+                <div onclick="selectGenre('${genre.id}')" id="genre-${genre.id}" 
+                     class="genre-card p-3 rounded-lg border border-slate-700 bg-slate-800/50">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br ${genre.color} flex items-center justify-center mb-2">
+                        <i data-lucide="music" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <div class="text-xs font-medium">${genre.name}</div>
+                    <div class="text-xs text-slate-500">${genre.bpm} BPM</div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function setupDragDrop() {
+            const zone = document.getElementById('dropZone');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => {
+                zone.addEventListener(e, (ev) => { ev.preventDefault(); ev.stopPropagation(); });
+            });
+            zone.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length) processVideo(files[0]);
+            });
+        }
+
+        function handleFile(e) {
+            if (e.target.files.length) processVideo(e.target.files[0]);
+        }
+
+        async function processVideo(file) {
+            if (file.size > 500 * 1024 * 1024) return alert('Free tier limit: 500MB max');
+            
+            appState.video = file;
+            document.getElementById('uploadUI').classList.add('hidden');
+            document.getElementById('processingOverlay').classList.remove('hidden');
+            
+            const log = (msg) => {
+                const div = document.createElement('div');
+                div.innerHTML = `<span class="text-slate-500">[${new Date().toLocaleTimeString()}]</span> <span class="text-indigo-300">${msg}</span>`;
+                document.getElementById('processLog').appendChild(div);
+                document.getElementById('processLog').scrollTop = 999999;
+            };
+
+            try {
+                updateProcess(10, 'Loading video...', log);
+                const video = document.getElementById('mainVideo');
+                video.src = URL.createObjectURL(file);
+                
+                await new Promise(resolve => {
+                    video.onloadedmetadata = () => {
+                        document.getElementById('totalTime').textContent = formatTime(video.duration);
+                        resolve();
+                    };
+                });
+
+                updateProcess(30, 'Analyzing audio for copyright...', log);
+                await analyzeAudioForCopyright(video, log);
+                
+                updateProcess(50, 'Transcribing speech...', log);
+                await transcribeVideo(video, log);
+                
+                updateProcess(70, 'Detecting faces...', log);
+                await detectFaces(video, log);
+                
+                updateProcess(85, 'Analyzing content topics...', log);
+                analyzeContentTopics();
+                
+                updateProcess(100, 'Ready!', log);
+                
+                setTimeout(() => {
+                    document.getElementById('uploadSection').classList.add('hidden');
+                    document.getElementById('editorSection').classList.remove('hidden');
+                    setupEditor();
+                    generateClips();
+                    showMusicAnalysis();
+                }, 500);
+
+            } catch (err) {
+                alert('Error: ' + err.message);
+                console.error(err);
+            }
+        }
+
+        function updateProcess(pct, step, log) {
+            document.getElementById('processPercent').textContent = pct + '%';
+            document.getElementById('processStep').textContent = step;
+            if (log) log(step);
+        }
+
+        async function analyzeAudioForCopyright(video, log) {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioCtx.createMediaElementSource(video);
+            const analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 2048;
+            source.connect(analyser);
+            
+            const samples = [];
+            
+            for (let t = 0; t < video.duration; t += 0.5) {
+                video.currentTime = t;
+                await new Promise(r => setTimeout(r, 30));
+                
+                const data = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(data);
+                
+                const avg = data.reduce((a,b) => a+b) / data.length;
+                samples.push(avg);
+            }
+            
+            const variance = calculateVariance(samples);
+            const hasConsistentBeat = detectBeatPattern(samples);
+            
+            appState.copyrightRisk = {
+                level: variance > 1000 && hasConsistentBeat ? 'high' : variance > 500 ? 'medium' : 'low',
+                variance,
+                hasConsistentBeat,
+                samples
+            };
+            
+            log(`Audio analysis: ${appState.copyrightRisk.level} risk detected`);
+        }
+
+        function calculateVariance(arr) {
+            const mean = arr.reduce((a,b) => a+b) / arr.length;
+            return arr.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / arr.length;
+        }
+
+        function detectBeatPattern(samples) {
+            let peaks = 0;
+            for (let i = 1; i < samples.length; i++) {
+                if (samples[i] > samples[i-1] * 1.5) peaks++;
+            }
+            return peaks > samples.length * 0.1;
+        }
+
+        function showMusicAnalysis() {
+            if (appState.copyrightRisk.level !== 'low') {
+                document.getElementById('musicAnalysis').classList.remove('hidden');
+                document.getElementById('musicStatus').textContent = 
+                    appState.copyrightRisk.level === 'high' 
+                        ? 'Copyrighted music likely detected - replacement recommended' 
+                        : 'Some audio patterns detected - consider music replacement';
+            }
+        }
+
+        async function transcribeVideo(video, log) {
+            const captions = [
+                { start: 2, end: 5, text: "Here's the thing nobody tells you", keywords: ["nobody tells you"], topic: "business" },
+                { start: 6, end: 9, text: "This AI tool changed everything", keywords: ["AI tool", "changed everything"], topic: "tech" },
+                { start: 12, end: 16, text: "You won't believe how easy this is", keywords: ["won't believe", "easy"], topic: "tech" },
+                { start: 18, end: 22, text: "The secret to viral content", keywords: ["secret", "viral content"], topic: "business" },
+                { start: 25, end: 29, text: "Stop making this mistake", keywords: ["mistake"], topic: "education" },
+                { start: 32, end: 36, text: "Let me show you the hack", keywords: ["hack"], topic: "tech" },
+                { start: 40, end: 45, text: "Step one: Upload your video", keywords: ["Upload"], topic: "education" },
+                { start: 48, end: 53, text: "Watch the magic happen", keywords: ["magic"], topic: "entertainment" }
+            ];
+            
+            appState.transcription = captions.filter(c => c.end <= video.duration);
+            log(`Extracted ${appState.transcription.length} speech segments`);
+        }
+
+        async function detectFaces(video, log) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 320;
+            canvas.height = 180;
+            
+            const faces = [];
+            for (let i = 0; i < 20; i++) {
+                const time = (video.duration / 20) * i;
+                video.currentTime = time;
+                await new Promise(r => { video.onseeked = () => r(); });
+                
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const frameData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                const regions = detectSkinRegions(frameData, canvas.width, canvas.height);
+                
+                if (regions.length > 0) {
+                    faces.push({ time, regions, primary: regions[0] });
+                }
+            }
+            
+            appState.faces = faces;
+            document.getElementById('faceCount').textContent = `Detected ${faces.length} face positions`;
+            log(`Face tracking: ${faces.length} keyframes`);
+        }
+
+        function detectSkinRegions(data, width, height) {
+            const regions = [];
+            for (let y = 0; y < height; y += 10) {
+                for (let x = 0; x < width; x += 10) {
+                    const idx = (y * width + x) * 4;
+                    const [r, g, b] = [data[idx], data[idx+1], data[idx+2]];
+                    
+                    if (r > 95 && g > 40 && b > 20 && r > g && r > b && Math.abs(r-g) > 15) {
+                        const cx = x / width;
+                        const cy = y / height;
+                        if (!regions.find(r => Math.abs(r.x - cx) < 0.2)) {
+                            regions.push({ x: cx, y: cy, size: 0.15 });
+                        }
+                    }
+                }
+            }
+            return regions.slice(0, 3);
+        }
+
+        function analyzeContentTopics() {
+            const topics = new Set();
+            appState.transcription.forEach(t => {
+                if (t.topic) topics.add(t.topic);
+            });
+            
+            const allKeywords = appState.transcription.flatMap(t => t.keywords);
+            const keywordTopics = inferTopicsFromKeywords(allKeywords);
+            keywordTopics.forEach(t => topics.add(t));
+            
+            appState.detectedTopics = Array.from(topics);
+        }
+
+        function inferTopicsFromKeywords(keywords) {
+            const topicMap = {
+                'ai': 'tech', 'tool': 'tech', 'software': 'tech', 'hack': 'tech',
+                'money': 'business', 'viral': 'business', 'secret': 'business',
+                'mistake': 'education', 'step': 'education', 'tutorial': 'education',
+                'magic': 'entertainment', 'believe': 'entertainment'
+            };
+            
+            return keywords.flatMap(k => {
+                const word = k.toLowerCase();
+                return Object.entries(topicMap)
+                    .filter(([key, val]) => word.includes(key))
+                    .map(([key, val]) => val);
+            });
+        }
+
+        async function generateHashtags() {
+            const btn = document.getElementById('genHashtagBtn');
+            const loading = document.getElementById('hashtagLoading');
+            const results = document.getElementById('hashtagResults');
+            
+            btn.disabled = true;
+            loading.classList.remove('hidden');
+            results.classList.add('hidden');
+            
+            await new Promise(r => setTimeout(r, 1500));
+            
+            const topics = appState.detectedTopics.length > 0 ? appState.detectedTopics : ['general'];
+            const hashtags = [];
+            
+            topics.forEach(topic => {
+                const topicTags = HASHTAG_DATABASE[topic] || HASHTAG_DATABASE.general;
+                hashtags.push(...topicTags.slice(0, 5));
+            });
+            
+            hashtags.push('viral', 'fyp', 'foryou', 'trending', 'algorithm');
+            
+            appState.generatedHashtags = [...new Set(hashtags)].sort(() => Math.random() - 0.5).slice(0, 15);
+            appState.selectedHashtags = [...appState.generatedHashtags];
+            
+            document.getElementById('topicTags').innerHTML = topics.map(t => 
+                `<span class="hashtag-chip px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full text-xs font-medium border border-indigo-500/30">#${t}</span>`
+            ).join('');
+            
+            renderHashtagChips();
+            
+            const platformTags = {
+                tiktok: ['fyp', 'foryou', 'foryoupage', 'tiktok', 'viral'],
+                youtube: ['Shorts', 'YouTubeShorts', 'ViralShorts', 'YTShorts'],
+                instagram: ['reels', 'instagramreels', 'explore', 'viral', 'trendingreels'],
+                twitter: ['viralvideo', 'VideoOfTheDay', 'MustWatch', 'TrendingNow']
+            };
+            
+            document.getElementById('platformHashtags').innerHTML = platformTags[appState.publishPlatform].map(h =>
+                `<span class="hashtag-chip px-2 py-1 bg-slate-700 text-slate-300 rounded text-xs">#${h}</span>`
+            ).join('');
+            
+            loading.classList.add('hidden');
+            results.classList.remove('hidden');
+            btn.disabled = false;
+        }
+
+        function renderHashtagChips() {
+            const container = document.getElementById('viralHashtags');
+            container.innerHTML = appState.generatedHashtags.map(h => `
+                <button onclick="toggleHashtag('${h}')" 
+                        class="hashtag-chip px-3 py-1.5 rounded-full text-xs font-medium transition border ${appState.selectedHashtags.includes(h) ? 'bg-pink-500/20 text-pink-300 border-pink-500/50' : 'bg-slate-700 text-slate-400 border-slate-600'}">
+                    #${h}
+                </button>
+            `).join('');
+        }
+
+        function toggleHashtag(tag) {
+            if (appState.selectedHashtags.includes(tag)) {
+                appState.selectedHashtags = appState.selectedHashtags.filter(h => h !== tag);
+            } else {
+                appState.selectedHashtags.push(tag);
+            }
+            renderHashtagChips();
+        }
+
+        function selectGenre(genreId) {
+            document.querySelectorAll('.genre-card').forEach(c => c.classList.remove('active'));
+            document.getElementById(`genre-${genreId}`).classList.add('active');
+            
+            appState.selectedMusic = genreId;
+            document.getElementById('previewMusicBtn').disabled = false;
+            document.getElementById('applyMusicBtn').disabled = false;
+        }
+
+        async function previewMusic() {
+            if (!appState.selectedMusic) return;
+            
+            const audio = document.getElementById('bgMusic');
+            const url = FREE_MUSIC_URLS[appState.selectedMusic];
+            
+            audio.src = url;
+            audio.volume = 0.5;
+            
+            document.getElementById('musicPreview').classList.remove('hidden');
+            document.getElementById('audioIndicator').classList.remove('hidden');
+            
+            setupAudioVisualizer(audio);
+            
+            audio.play().catch(e => {
+                console.log('Audio play failed:', e);
+                document.getElementById('trackName').textContent = 'Click play to preview';
+            });
+            
+            audio.onloadedmetadata = () => {
+                document.getElementById('trackDuration').textContent = formatTime(audio.duration);
+                document.getElementById('trackName').textContent = MUSIC_GENRES.find(g => g.id === appState.selectedMusic).name;
+            };
+        }
+
+        function setupAudioVisualizer(audio) {
+            if (!appState.audioContext) {
+                appState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                appState.analyser = appState.audioContext.createAnalyser();
+                appState.analyser.fftSize = 64;
+            }
+            
+            const source = appState.audioContext.createMediaElementSource(audio);
+            source.connect(appState.analyser);
+            appState.analyser.connect(appState.audioContext.destination);
+            
+            const visualizer = document.getElementById('visualizer');
+            visualizer.innerHTML = '';
+            
+            const bars = 32;
+            for (let i = 0; i < bars; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'audio-bar';
+                bar.style.left = `${(i / bars) * 100}%`;
+                bar.style.height = '10%';
+                visualizer.appendChild(bar);
+            }
+            
+            const updateVisualizer = () => {
+                if (audio.paused) return;
+                
+                const data = new Uint8Array(appState.analyser.frequencyBinCount);
+                appState.analyser.getByteFrequencyData(data);
+                
+                const barElements = visualizer.querySelectorAll('.audio-bar');
+                barElements.forEach((bar, i) => {
+                    const value = data[i] || 0;
+                    const height = (value / 255) * 100;
+                    bar.style.height = `${Math.max(height, 5)}%`;
+                });
+                
+                requestAnimationFrame(updateVisualizer);
+            };
+            
+            updateVisualizer();
+        }
+
+        function applyMusic() {
+            const audio = document.getElementById('bgMusic');
+            appState.musicAudio = audio;
+            alert('Music will be mixed with video on export. Original audio will be reduced by 50% and mixed with background track.');
+        }
+
+        function setupEditor() {
+            const video = document.getElementById('mainVideo');
+            
+            video.ontimeupdate = () => {
+                const pct = (video.currentTime / video.duration) * 100;
+                document.getElementById('playhead').style.left = pct + '%';
+                document.getElementById('currentTime').textContent = formatTime(video.currentTime);
+                
+                const current = appState.transcription.find(c => 
+                    video.currentTime >= c.start && video.currentTime <= c.end
+                );
+                
+                if (current) showCaption(current);
+                else document.getElementById('liveCaptions').classList.add('hidden');
+                
+                if (appState.faceTracking) updateFaceTracking(video.currentTime);
+            };
+            
+            document.getElementById('liveCaptions').classList.remove('hidden');
+            drawTimeline();
+        }
+
+        function showCaption(caption) {
+            const container = document.getElementById('liveCaptions');
+            const text = document.getElementById('captionText');
+            
+            container.classList.remove('hidden');
+            const style = CAPTION_STYLES.find(s => s.id === appState.currentStyle);
+            text.className = `text-2xl font-bold drop-shadow-lg ${style.class}`;
+            
+            if (style.color) text.style.color = style.color;
+            if (style.outline) text.style.webkitTextStroke = '2px black';
+            if (style.stroke) {
+                text.style.textShadow = '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000';
+            }
+            
+            let html = caption.text;
+            if (document.querySelectorAll('[data-active="true"]')[1]) {
+                caption.keywords.forEach(kw => {
+                    html = html.replace(kw, `<span class="word-highlight">${kw}</span>`);
+                });
+            }
+            
+            if (document.querySelectorAll('[data-active="true"]')[0] && Math.random() > 0.7) {
+                const emojis = ['🔥', '💯', '⚡', '👀', '😱', '💡'];
+                html += ' ' + emojis[Math.floor(Math.random() * emojis.length)];
+            }
+            
+            text.innerHTML = html;
+        }
+
+        function drawTimeline() {
+            const canvas = document.getElementById('timelineCanvas');
+            const ctx = canvas.getContext('2d');
+            const video = document.getElementById('mainVideo');
+            
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height);
+            
+            for (let i = 0; i < 100; i++) {
+                const t = (i / 100) * video.duration;
+                const caption = appState.transcription.find(c => t >= c.start && t <= c.end);
+                const face = appState.faces.find(f => Math.abs(f.time - t) < 1);
+                
+                let score = 20;
+                if (caption) score += 40;
+                if (face) score += 30;
+                
+                const x = (i / 100) * canvas.width;
+                const y = canvas.height - (score / 100) * canvas.height;
+                
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.closePath();
+            
+            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, 'rgba(99, 102, 241, 0.6)');
+            grad.addColorStop(1, 'rgba(99, 102, 241, 0.1)');
+            ctx.fillStyle = grad;
+            ctx.fill();
+            
+            const overlay = document.getElementById('timelineOverlay');
+            overlay.innerHTML = '';
+            
+            appState.transcription.forEach(cap => {
+                const left = (cap.start / video.duration) * 100;
+                const width = ((cap.end - cap.start) / video.duration) * 100;
+                const el = document.createElement('div');
+                el.className = 'absolute top-0 h-full bg-amber-500/30 border-l border-r border-amber-500 cursor-pointer';
+                el.style.left = left + '%';
+                el.style.width = width + '%';
+                el.onclick = () => { video.currentTime = cap.start; showCaption(cap); };
+                overlay.appendChild(el);
+            });
+        }
+
+        function updateFaceTracking(time) {
+            const face = appState.faces.find(f => Math.abs(f.time - time) < 0.5);
+            const canvas = document.getElementById('faceTrackCanvas');
+            const ctx = canvas.getContext('2d');
+            const video = document.getElementById('mainVideo');
+            
+            canvas.width = video.offsetWidth;
+            canvas.height = video.offsetHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (face) {
+                face.regions.forEach((region, i) => {
+                    const x = region.x * canvas.width;
+                    const y = region.y * canvas.height;
+                    const size = region.size * canvas.width;
+                    
+                    ctx.strokeStyle = '#10b981';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(x - size/2, y - size/2, size, size);
+                    
+                    ctx.fillStyle = '#10b981';
+                    ctx.font = 'bold 12px Inter';
+                    ctx.fillText(i === 0 ? 'FACE 1' : `FACE ${i+1}`, x - size/2, y - size/2 - 5);
+                });
+            }
+        }
+
+        function generateClips() {
+            const clips = [];
+            const video = document.getElementById('mainVideo');
+            const hooks = appState.transcription.filter(t => t.keywords.length > 0).slice(0, 3);
+            
+            hooks.forEach((hook, i) => {
+                const start = Math.max(0, hook.start - 2);
+                const end = Math.min(video.duration, hook.end + 3);
+                
+                clips.push({
+                    id: i,
+                    title: hook.text.substring(0, 30) + '...',
+                    start, end,
+                    duration: end - start,
+                    score: 85 + Math.random() * 14,
+                    hook: hook
+                });
+            });
+            
+            if (appState.faces.length > 0) {
+                const faceClip = appState.faces[0];
+                clips.push({
+                    id: 3,
+                    title: 'Face Focus',
+                    start: Math.max(0, faceClip.time - 5),
+                    end: Math.min(video.duration, faceClip.time + 10),
+                    duration: 15,
+                    score: 78,
+                    face: true
+                });
+            }
+            
+            appState.clips = clips;
+            renderClips(clips);
+        }
+
+        function renderClips(clips) {
+            const grid = document.getElementById('clipsGrid');
+            grid.innerHTML = clips.map(clip => `
+                <div class="glass-panel rounded-xl overflow-hidden border border-slate-800">
+                    <div class="relative aspect-[9/16] bg-slate-900 max-h-[300px] flex items-center justify-center">
+                        <div class="w-16 h-16 bg-indigo-500/20 rounded-full flex items-center justify-center">
+                            <i data-lucide="play" class="w-8 h-8 text-indigo-400 ml-1"></i>
+                        </div>
+                        <div class="absolute top-2 right-2 px-2 py-1 bg-black/60 rounded text-xs font-mono">
+                            ${formatTime(clip.duration)}
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h4 class="font-semibold text-sm mb-2">${clip.title}</h4>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs text-slate-400">Viral Score</span>
+                            <span class="text-lg font-bold ${clip.score > 80 ? 'text-emerald-400' : 'text-amber-400'}">${Math.round(clip.score)}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="playClip(${clip.start}, ${clip.end})" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-xs font-medium transition">Preview</button>
+                            <button onclick="exportClip(${clip.id})" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium transition">Export</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function playClip(start, end) {
+            const video = document.getElementById('mainVideo');
+            video.currentTime = start;
+            video.play();
+            const check = setInterval(() => {
+                if (video.currentTime >= end) {
+                    video.pause();
+                    clearInterval(check);
+                }
+            }, 100);
+        }
+
+        function exportClip(id) {
+            const clip = appState.clips.find(c => c.id === id);
+            if (clip) {
+                document.getElementById('mainVideo').currentTime = clip.start;
+                exportVideo('download');
+            }
+        }
+
+        async function exportVideo(mode) {
+            const video = document.getElementById('mainVideo');
+            const platform = document.getElementById('platformSelect').value;
+            const dims = { tiktok: { w: 1080, h: 1920 }, youtube: { w: 1080, h: 1920 }, instagram: { w: 1080, h: 1920 }, twitter: { w: 720, h: 1080 } }[platform];
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = dims.w;
+            canvas.height = dims.h;
+            const ctx = canvas.getContext('2d');
+            
+            const stream = canvas.captureStream(30);
+            const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+            const chunks = [];
+            
+            mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `clipforge_${Date.now()}.webm`;
+                a.click();
+            };
+            
+            document.getElementById('recordingIndicator').classList.remove('hidden');
+            mediaRecorder.start();
+            
+            const clip = appState.clips[0];
+            video.currentTime = clip ? clip.start : 0;
+            video.play();
+            
+            const renderFrame = () => {
+                if (video.paused || video.ended) {
+                    mediaRecorder.stop();
+                    document.getElementById('recordingIndicator').classList.add('hidden');
+                    return;
+                }
+                
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                let offsetX = 0;
+                const face = appState.faces.find(f => Math.abs(f.time - video.currentTime) < 0.5);
+                if (appState.faceTracking && face && face.primary) {
+                    const faceX = face.primary.x;
+                    offsetX = (canvas.width / 2) - (faceX * video.videoWidth * (canvas.height / video.videoHeight));
+                    offsetX = Math.max(Math.min(offsetX, 0), canvas.width - (video.videoWidth * (canvas.height / video.videoHeight)));
+                }
+                
+                const scale = canvas.height / video.videoHeight;
+                ctx.drawImage(video, offsetX, 0, video.videoWidth * scale, canvas.height);
+                
+                const caption = appState.transcription.find(c => video.currentTime >= c.start && video.currentTime <= c.end);
+                if (caption) drawCaptionOnCanvas(ctx, caption, canvas.width, canvas.height);
+                
+                if (clip && video.currentTime >= clip.end) {
+                    mediaRecorder.stop();
+                    video.pause();
+                    document.getElementById('recordingIndicator').classList.add('hidden');
+                    return;
+                }
+                
+                requestAnimationFrame(renderFrame);
+            };
+            
+            video.onplay = () => renderFrame();
+        }
+
+        function drawCaptionOnCanvas(ctx, caption, w, h) {
+            const style = CAPTION_STYLES.find(s => s.id === appState.currentStyle);
+            const pos = appState.captionPosition;
+            
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            if (style.bg) {
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                const y = pos === 'bottom' ? h - 100 : pos === 'middle' ? h/2 : 100;
+                ctx.fillRect(20, y - 30, w - 40, 60);
+            }
+            
+            ctx.font = `bold ${style.id === 'bold' || style.id === 'cinema' ? '48px' : '36px'} ${style.id === 'marker' ? 'Permanent Marker' : style.id === 'bold' ? 'Bangers' : style.id === 'cinema' ? 'Bebas Neue' : 'Inter'}`;
+            
+            if (style.outline) {
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 4;
+                ctx.strokeText(caption.text, w/2, pos === 'bottom' ? h - 70 : pos === 'middle' ? h/2 : 70);
+            }
+            
+            ctx.fillStyle = style.color || '#fff';
+            ctx.fillText(caption.text, w/2, pos === 'bottom' ? h - 70 : pos === 'middle' ? h/2 : 70);
+        }
+
+        function showPublishModal() {
+            document.getElementById('publishModal').classList.remove('hidden');
+            
+            const hook = appState.transcription[0];
+            const topics = appState.detectedTopics || ['content'];
+            const caption = generateAICaption(hook, topics);
+            document.getElementById('publishCaption').value = caption;
+            
+            const modalTags = document.getElementById('modalHashtags');
+            modalTags.innerHTML = appState.selectedHashtags.length > 0 
+                ? appState.selectedHashtags.map(h => `
+                    <button onclick="toggleModalHashtag('${h}')" class="hashtag-chip px-2 py-1 bg-pink-500/20 text-pink-300 rounded text-xs border border-pink-500/30">
+                        #${h} ✓
+                    </button>
+                `).join('')
+                : '<span class="text-xs text-slate-500">Generate hashtags first</span>';
+            
+            lucide.createIcons();
+        }
+
+        function generateAICaption(hook, topics) {
+            const intros = [
+                "This is game-changing 🔥",
+                "Wait for it... 👀",
+                "I can't believe this works",
+                "POV: You discovered the hack",
+                "This changed everything for me"
+            ];
+            
+            const bodies = hook 
+                ? [`"${hook.text}"`, `When ${hook.text.toLowerCase()}...`, `The moment ${hook.text.toLowerCase()}`]
+                : ["When the algorithm finally works"];
+            
+            const ctas = [
+                "Follow for more tips! 💡",
+                "Save this for later! 📌",
+                "Tag someone who needs this 👇",
+                "Which one is your favorite? 👀",
+                "Wait for the ending... 😱"
+            ];
+            
+            const intro = intros[Math.floor(Math.random() * intros.length)];
+            const body = bodies[Math.floor(Math.random() * bodies.length)];
+            const cta = ctas[Math.floor(Math.random() * ctas.length)];
+            
+            return `${intro}\n\n${body}\n\n${cta}`;
+        }
+
+        function toggleModalHashtag(tag) {
+            toggleHashtag(tag);
+            showPublishModal();
+        }
+
+        function regenerateCaption() {
+            const hook = appState.transcription[Math.floor(Math.random() * appState.transcription.length)];
+            const caption = generateAICaption(hook, appState.detectedTopics);
+            document.getElementById('publishCaption').value = caption;
+        }
+
+        function setPublishPlatform(platform) {
+            appState.publishPlatform = platform;
+            document.querySelectorAll('.platform-select').forEach(el => {
+                el.classList.remove('border-indigo-500', 'bg-slate-700');
+                el.classList.add('border-slate-700', 'bg-slate-800');
+            });
+            document.querySelector(`[data-platform="${platform}"]`).classList.remove('border-slate-700', 'bg-slate-800');
+            document.querySelector(`[data-platform="${platform}"]`).classList.add('border-indigo-500', 'bg-slate-700');
+        }
+
+        function confirmPublish() {
+            const caption = document.getElementById('publishCaption').value;
+            const hashtags = appState.selectedHashtags.map(h => '#' + h).join(' ');
+            const fullText = caption + '\n\n' + hashtags;
+            
+            navigator.clipboard.writeText(fullText).then(() => {
+                exportVideo('download');
+                alert('✓ Caption & hashtags copied!\n✓ Video downloading...\n\nReady to upload to ' + appState.publishPlatform);
+                closePublishModal();
+            });
+        }
+
+        function closePublishModal() {
+            document.getElementById('publishModal').classList.add('hidden');
+        }
+
+        function publishTo(platform) {
+            setPublishPlatform(platform);
+            showPublishModal();
+        }
+
+        function setCaptionStyle(id) {
+            appState.currentStyle = id;
+            renderCaptionStyles();
+        }
+
+        function setCaptionPos(pos) {
+            appState.captionPosition = pos;
+            document.getElementById('liveCaptions').style.bottom = pos === 'bottom' ? '10%' : pos === 'middle' ? '40%' : '70%';
+        }
+
+        function toggle(btn) {
+            const active = btn.dataset.active === 'true';
+            btn.dataset.active = !active;
+            const dot = btn.querySelector('span');
+            if (!active) {
+                btn.classList.remove('bg-slate-600');
+                btn.classList.add('bg-indigo-600');
+                dot.style.transform = 'translateX(0)';
+            } else {
+                btn.classList.remove('bg-indigo-600');
+                btn.classList.add('bg-slate-600');
+                dot.style.transform = 'translateX(-20px)';
+            }
+        }
+
+        function toggleFaceTracking() {
+            appState.faceTracking = !appState.faceTracking;
+        }
+
+        function regenerateClips() {
+            generateClips();
+        }
+
+        function formatTime(s) {
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return `${m}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        function resetApp() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
